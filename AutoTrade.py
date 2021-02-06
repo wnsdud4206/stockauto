@@ -121,6 +121,7 @@ def get_current_cash():
     return cpCash.GetHeaderValue(9) # 증거금 100% 주문 가능 금액
 
 def get_target_price(code):
+    # 매도 목표가는??
     """매수 목표가를 반환한다."""
     try:
         time_now = datetime.now()
@@ -134,7 +135,8 @@ def get_target_price(code):
             today_open = lastday[3]
         lastday_high = lastday[1]
         lastday_low = lastday[2]
-        target_price = today_open + (lastday_high - lastday_low) * 0.1
+        # 수정 20210206
+        target_price = today_open + (lastday_high - lastday_low) * 0.05
         return target_price
     except Exception as ex:
         dbgout("`get_target_price() -> exception! " + str(ex) + "`")
