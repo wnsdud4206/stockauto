@@ -7,8 +7,9 @@ import time, calendar
 
 # test_1 : [SK이노베이션(A096770), 네이버(A035420), 삼성바이오로직스(A207940), 삼성SDI(A006400), 펄어비스(A263750), LG화학(A051910), 엔씨소프트(A036570), 셀트리온(A068270), 카카오(A035720), 더존비즈온(A012510)](삼성전자(A005930) 제외)
 # test_2 : [TIGER 인도니프티50레버리지(합성)(A236350), KINDEX 블룸버그베트남VN30선물레버리지(H)(A371130), KINDEX 중국본토CSI300레버리지(합성)(A219900), TIGER 은행(A091220), KODEX 은행(A091170), TIGER 미국다우존스30(A245340), KODEX 선진국MSCI World(A251350), KODEX 미국러셀2000(H)(A280930), HANARO 글로벌럭셔리S&P(합성)(A354350), TIGER 미국S&P500(A360750)]
+# text_3 : [TIGER 금속선물(H)(A139310), KODEX 구리선물(H)(A138910), TIGER 구리실물(A160580), KODEX 보험(A140700), KBSTAR 200철강소재(A285020), TIGER 200 철강소재(A139240), KODEX 철강(A117680), TIGER 차이나CSI300인버스(합성)(A217780), KBSTAR 미국장기국채선물인버스2X(합성 H)(A267500), KODEX 은선물(H)(A144600)]
 
-slack = Slacker('xoxb-1702274057602-1726122749568-vMD2D5turaTQ1e0ycGfJlUER')
+slack = Slacker('xoxb-1702274057602-1726122749568-WOViXUbWzx7ldDy3MgCabBsp')
 def dbgout(message):
     """인자로 받은 문자열을 파이썬 셸과 슬랙으로 동시에 출력한다."""
     print(datetime.now().strftime('[%m/%d %H:%M:%S]'), message)
@@ -90,6 +91,8 @@ def get_stock_balance(code):
         dbgout('계좌명: ' + str(cpBalance.GetHeaderValue(0)))
         dbgout('결제잔고수량 : ' + str(cpBalance.GetHeaderValue(1)))
         dbgout('평가금액: ' + str(cpBalance.GetHeaderValue(3)))
+        # 20210222
+        # dbgout('평가손익: ' + str(cpBalance.GetHeaderValue(4)), str(int(cpBalance.GetHeaderValue(4)) / (int(cpBalance.GetHeaderValue(3)) - int(cpBalance.GetHeaderValue(4)))) + "%")
         dbgout('평가손익: ' + str(cpBalance.GetHeaderValue(4)))
         dbgout('종목수: ' + str(cpBalance.GetHeaderValue(7)))
     stocks = []
@@ -247,7 +250,7 @@ def sell_all():
 
 if __name__ == '__main__': 
     try:
-        symbol_list = ['A236350', 'A371130', 'A219900', 'A091220', 'A091170', 'A245340', 'A251350', 'A280930', 'A354350', 'A360750']
+        symbol_list = ['A139310', 'A138910', 'A160580', 'A140700', 'A285020', 'A139240', 'A117680', 'A217780', 'A267500', 'A144600']
         bought_list = []     # 매수 완료된 종목 리스트
         # target_buy_count = 10 # 매수할 종목 수
         ## 살 종목 갯수를 알아서 하게끔
@@ -279,6 +282,10 @@ if __name__ == '__main__':
                 soldout = True
                 sell_all()
             if t_start < t_now < t_sell :  # AM 09:05 ~ PM 03:15 : 매수
+                # 20210222
+                # global startProperty
+                # startProperty = get_current_cash()
+
                 for sym in symbol_list:
                     if len(bought_list) < target_buy_count:
                         buy_etf(sym)
@@ -287,6 +294,9 @@ if __name__ == '__main__':
                     get_stock_balance('ALL')
                     time.sleep(5)
             if t_sell < t_now < t_exit:  # PM 03:15 ~ PM 03:20 : 일괄 매도
+                # 20210222
+                dbgout("수익률 : " + str((int(get_current_cash()) - int(startProperty)) / int(startProperty)))
+
                 if sell_all() == True:
                     dbgout('`sell_all() returned True -> self-destructed!`')
                     sys.exit(0)

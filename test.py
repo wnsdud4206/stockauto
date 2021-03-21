@@ -68,7 +68,7 @@ offer = objStockMst.GetHeaderValue(16)  #매도호가
 
 from slacker import Slacker
 
-slack = Slacker('xoxb-1702274057602-1726122749568-vMD2D5turaTQ1e0ycGfJlUER')
+slack = Slacker('xoxb-1702274057602-1726122749568-WOViXUbWzx7ldDy3MgCabBsp')
 
 # Send a message to #general channel
 slack.chat.post_message('#stock', '삼성전자 현재가: ' + str(offer))

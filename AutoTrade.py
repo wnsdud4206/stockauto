@@ -7,8 +7,9 @@ import time, calendar
 
 # test_1 : [SK이노베이션(A096770), 네이버(A035420), 삼성바이오로직스(A207940), 삼성SDI(A006400), 펄어비스(A263750), LG화학(A051910), 엔씨소프트(A036570), 셀트리온(A068270), 카카오(A035720), 더존비즈온(A012510)](삼성전자(A005930) 제외)
 # test_2 : [TIGER 인도니프티50레버리지(합성)(A236350), KINDEX 블룸버그베트남VN30선물레버리지(H)(A371130), KINDEX 중국본토CSI300레버리지(합성)(A219900), TIGER 은행(A091220), KODEX 은행(A091170), TIGER 미국다우존스30(A245340), KODEX 선진국MSCI World(A251350), KODEX 미국러셀2000(H)(A280930), HANARO 글로벌럭셔리S&P(합성)(A354350), TIGER 미국S&P500(A360750)]
+# KINDEX 블룸버그베트남VN30선물레버리지(H)(A371130), KBSTAR 미국S&P원유생산기업(합성 H)(A219390), KINDEX 중국본토CSI300레버리지(합성)(A219900), KODEX 콩선물(H)(A138920), KODEX WTI원유선물(H)(A261220), KODEX 3대농산물선물(H)(A271060), TIGER 차이나전기차SOLACTIVE(A371460), TIGER 원유선물Enhanced(H)(A130680), TIGER 글로벌자원생산기업(합성 H)(A276000), TIGER 농산물선물Enhanced(H)(A137610)
 
-slack = Slacker('xoxb-1702274057602-1726122749568-vMD2D5turaTQ1e0ycGfJlUER')
+slack = Slacker('xoxb-1702274057602-1726122749568-WOViXUbWzx7ldDy3MgCabBsp')
 def dbgout(message):
     """인자로 받은 문자열을 파이썬 셸과 슬랙으로 동시에 출력한다."""
     print(datetime.now().strftime('[%m/%d %H:%M:%S]'), message)
@@ -85,7 +86,7 @@ def get_stock_balance(code):
     cpBalance.SetInputValue(0, acc)         # 계좌번호
     cpBalance.SetInputValue(1, accFlag[0])  # 상품구분 - 주식 상품 중 첫번째
     cpBalance.SetInputValue(2, 50)          # 요청 건수(최대 50)
-    cpBalance.BlockRequest()     
+    cpBalance.BlockRequest()    
     if code == 'ALL':
         dbgout('계좌명: ' + str(cpBalance.GetHeaderValue(0)))
         dbgout('결제잔고수량 : ' + str(cpBalance.GetHeaderValue(1)))
@@ -121,7 +122,6 @@ def get_current_cash():
     return cpCash.GetHeaderValue(9) # 증거금 100% 주문 가능 금액
 
 def get_target_price(code):
-    # 매도 목표가는??
     """매수 목표가를 반환한다."""
     try:
         time_now = datetime.now()
@@ -136,7 +136,7 @@ def get_target_price(code):
         lastday_high = lastday[1]
         lastday_low = lastday[2]
         # 수정 20210206
-        target_price = today_open + (lastday_high - lastday_low) * 0.05
+        target_price = today_open + (lastday_high - lastday_low) * 0.1
         return target_price
     except Exception as ex:
         dbgout("`get_target_price() -> exception! " + str(ex) + "`")
@@ -165,6 +165,7 @@ def buy_etf(code):
         global bought_list      # 함수 내에서 값 변경을 하기 위해 global로 지정
         if code in bought_list: # 매수 완료 종목이면 더 이상 안 사도록 함수 종료
             #printlog('code:', code, 'in', bought_list)
+            print("매수 완료 종목이면 더 이상 안 사도록 함수 종료")
             return False
         time_now = datetime.now()
         current_price, ask_price, bid_price = get_current_price(code) 
@@ -173,6 +174,7 @@ def buy_etf(code):
         ma10_price = get_movingaverage(code, 10) # 10일 이동평균가
         buy_qty = 0        # 매수할 수량 초기화
         if ask_price > 0:  # 매수호가가 존재하면   
+            print("매도호가 존재")
             buy_qty = buy_amount // ask_price  
         stock_name, stock_qty = get_stock_balance(code)  # 종목명과 보유수량 조회
         #printlog('bought_list:', bought_list, 'len(bought_list):',
@@ -200,6 +202,7 @@ def buy_etf(code):
                 remain_time = cpStatus.LimitRequestRemainTime
                 printlog('주의: 연속 주문 제한에 걸림. 대기 시간:', remain_time/1000)
                 time.sleep(remain_time/1000) 
+                print("연속 주문 제한?")
                 return False
             time.sleep(2)
             printlog('현금주문 가능금액 :', buy_amount)
@@ -248,10 +251,10 @@ def sell_all():
 
 if __name__ == '__main__': 
     try:
-        symbol_list = ['A236350', 'A371130', 'A219900', 'A091220', 'A091170', 'A245340', 'A251350', 'A280930', 'A354350', 'A360750']
+        symbol_list = ['A139310', 'A138910', 'A160580', 'A140700', 'A285020', 'A139240', 'A117680', 'A217780', 'A267500', 'A144600']
         bought_list = []     # 매수 완료된 종목 리스트
-        target_buy_count = len(symbol_list) # 매수할 종목 수
-        buy_percent = 1/(target_buy_count - len(bought_list))  
+        target_buy_count = 10 # 매수할 종목 수
+        buy_percent = 0.10
         printlog('check_creon_system() :', check_creon_system())  # 크레온 접속 점검
         stocks = get_stock_balance('ALL')      # 보유한 모든 종목 조회
         total_cash = int(get_current_cash())   # 100% 증거금 주문 가능 금액 조회
@@ -271,24 +274,35 @@ if __name__ == '__main__':
             today = datetime.today().weekday()
             if today == 5 or today == 6:  # 토요일이나 일요일이면 자동 종료
                 printlog('Today is', 'Saturday.' if today == 5 else 'Sunday.')
+                print("주말")
                 sys.exit(0)
             if t_9 < t_now < t_start and soldout == False:
                 soldout = True
+                print("~9시 5분")
                 sell_all()
             if t_start < t_now < t_sell :  # AM 09:05 ~ PM 03:15 : 매수
+                # global startProperty
+                # startProperty = get_current_cash()
+
                 for sym in symbol_list:
                     if len(bought_list) < target_buy_count:
                         buy_etf(sym)
+                        print(len(bought_list), target_buy_count)
                         time.sleep(1)
                 if t_now.minute == 30 and 0 <= t_now.second <= 5: 
                     get_stock_balance('ALL')
+                    print("30분 마다 알림")
                     time.sleep(5)
             if t_sell < t_now < t_exit:  # PM 03:15 ~ PM 03:20 : 일괄 매도
+                # dbgout("수익률 : " + str((int(get_current_cash()) - int(startProperty)) / int(startProperty)))
+
                 if sell_all() == True:
                     dbgout('`sell_all() returned True -> self-destructed!`')
+                    print("장 마감 매도")
                     sys.exit(0)
             if t_exit < t_now:  # PM 03:20 ~ :프로그램 종료
                 dbgout('`self-destructed!`')
+                print("종료")
                 sys.exit(0)
             time.sleep(3)
     except Exception as ex:
